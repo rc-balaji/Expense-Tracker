@@ -1,12 +1,11 @@
 
-name: SIXTRACK - Extract and Build APK
+name: SIXTRACK Build APK
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-      - master
 
 permissions:
   contents: read
@@ -16,51 +15,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Extract Flutter ZIP
-      - name: Extract SIXTRACK ZIP
-        run: |
-          mkdir -p extracted
-          unzip -q SIXTRACK_Source.zip -d extracted
-          test -f extracted/sixtrack/pubspec.yaml
-
-      # 3. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      # 4. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      # 5. Generate Android project
       - name: Generate Android Files
-        working-directory: extracted/sixtrack
-        run: |
-          flutter create --platforms=android .
-          
-      # 6. Install dependencies
-      - name: Flutter Pub Get
-        working-directory: extracted/sixtrack
+        run: flutter create --platforms=android --project-name sixtrack .
+
+      - name: Install Dependencies
         run: flutter pub get
 
-      # 7. Build APK
-      - name: Build SIXTRACK APK
-        working-directory: extracted/sixtrack
+      - name: Analyze Project
+        run: flutter analyze
+
+      - name: Build APK
         run: flutter build apk --debug
 
-      # 8. Upload APK
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SIXTRACK-debug-APK
-          path: extracted/sixtrack/build/app/outputs/flutter-apk/app-debug.apk
-          if-no-files-found: error
+          name: SIXTRACK-APK
+          path: build/app/outputs/flutter-apk/app-debug.apk
           
